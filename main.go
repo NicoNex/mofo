@@ -166,11 +166,11 @@ func (s Server) serveMarkdown(w http.ResponseWriter, _ *http.Request, mdPath str
 	}
 }
 
-func (s Server) serveCSS(w http.ResponseWriter) {
+func (s Server) serveCSS(w http.ResponseWriter, r *http.Request) {
 	css := filepath.Join(s.Root, "assets", "style.css")
 	if _, err := os.Stat(css); err == nil {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, nil, css)
+		http.ServeFile(w, r, css)
 		return
 	}
 
@@ -185,7 +185,7 @@ func (s Server) serveFile(w http.ResponseWriter, r *http.Request, file string) {
 	}
 
 	if r.URL.Path == "/assets/style.css" {
-		s.serveCSS(w)
+		s.serveCSS(w, r)
 		return
 	}
 
