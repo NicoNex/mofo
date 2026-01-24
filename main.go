@@ -28,15 +28,15 @@ type Server struct {
 }
 
 type PageData struct {
-	Title   string
-	Year    int
-	Content template.HTML
+	Title       string
+	Description string
+	Year        int
+	Content     template.HTML
 }
 
-// TODO: add support for the meta description.
 type Frontmatter struct {
-	Title string `yaml:"title" toml:"title"`
-	Meta  string `yaml:"meta" toml:"meta"`
+	Title       string `yaml:"title" toml:"title"`
+	Description string `yaml:"description" toml:"description"`
 }
 
 var (
@@ -154,9 +154,10 @@ func (s Server) serveMarkdown(w http.ResponseWriter, _ *http.Request, mdPath str
 	}
 
 	vm := PageData{
-		Title:   fm.Title,
-		Year:    time.Now().Year(),
-		Content: template.HTML(buf.String()),
+		Title:       fm.Title,
+		Description: fm.Description,
+		Year:        time.Now().Year(),
+		Content:     template.HTML(buf.String()),
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

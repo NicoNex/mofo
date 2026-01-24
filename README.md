@@ -1,216 +1,234 @@
 # mofo
 
-A dead-simple markdown web server built with the [motherfucking website](https://motherfuckingwebsite.com/) philosophy in mind: fast, minimal, and brutally functional.
+## This is a motherfucking markdown web server.
 
-## Philosophy
+And it's probably the only one you'll ever fucking need.
 
-This tool embraces simplicity:
-- **No JavaScript** - Just pure HTML and CSS
-- **Minimal CSS** - Clean, readable typography with no bloat
-- **Fast** - Serves markdown files with zero build step
-- **Portable** - Single binary, no dependencies
+### It's *actually* simple
 
-Perfect for personal sites, documentation, blogs, or any content that values substance over style.
+You know what this does? It serves markdown files as HTML and everything else as static files. **That's it.** No build step. No npm install bullshit that downloads half the internet. No framework that's "totally different this time, bro." Just a single goddamn binary that does exactly what it says on the tin.
 
-## Features
+Files ending in `.md`? Rendered as HTML. Everything else? Served directly. Images, PDFs, CSS, JavaScript (if you hate yourself), fonts, videos, carrier pigeon instructions - doesn't matter. If it's not markdown, it gets served as-is.
 
-- 🔥 Serves markdown files as beautifully rendered HTML
-- 📝 Supports frontmatter (YAML/TOML) for metadata
-- 🎨 Uses a minimal default stylesheet (customizable)
-- 🚀 Hot-reload friendly (auto-retries on crash)
-- 📁 Serves static assets from the same directory
-- 🔗 GitHub Flavored Markdown support
-- 📖 Auto-generates heading IDs for anchor links
-
-## Installation
+### Seriously, it's literally one command
 
 ```bash
-go install github.com/yourusername/mofo@latest
+mofo /path/to/your/site
 ```
 
-Or build from source:
+**BOOM.** You're serving a website. Your markdown is now HTML. You didn't need to configure webpack, you didn't need to set up a CI/CD pipeline, you didn't need to attend a 3-hour meeting about component architecture. You just ran one fucking command.
+
+### "But what about my custom CSS?"
+
+Oh, you want custom CSS? Drop a `style.css` file in `assets/style.css` and **it just fucking works.** No sass compilation, no postcss plugins, no "CSS-in-JS-in-CSS-in-JSON" framework horseshit. Just regular ass CSS that you learned in 2005 and still works perfectly fine.
+
+```
+your-site/
+└── assets/
+    └── style.css  ← Put your CSS here to override the default
+```
+
+That's the **only** special thing about the `assets/` folder - if `assets/style.css` exists, it replaces the built-in CSS. Everything else? You can organize however the fuck you want. Put images in `/images`, put PDFs in `/documents`, put memes in `/shitposts` - the server doesn't give a shit.
+
+If you don't have `assets/style.css`, mofo uses a built-in minimal stylesheet that **doesn't look like shit** and **weighs fuck-all.** Unlike your favorite React component library that's somehow 400KB before you even render "Hello World."
+
+### The motherfucking philosophy
+
+This tool was built with the **[motherfucking website](https://motherfuckingwebsite.com/)** philosophy:
+
+- **Fast** → No JavaScript unless YOU add it (why the fuck would you?)
+- **Simple** → It's markdown. You write text. It becomes HTML. Congratulations, you're a web developer now.
+- **Minimal** → The whole thing is one Go binary. No node_modules directory that achieves sentience.
+- **Accessible** → Semantic HTML, readable text, actual fucking content instead of div soup.
+
+Perfect for blogs, documentation, personal sites, or literally anything where you want to **share information** instead of showing off your ability to configure webpack.
+
+### Features (that actually matter)
+
+✅ **Serves markdown as HTML** - shocking, I know  
+✅ **Serves everything else as static files** - images, CSS, PDFs, fonts, whatever the fuck you want  
+✅ **Frontmatter support** - YAML/TOML for titles and meta tags  
+✅ **GitHub Flavored Markdown** - tables, strikethrough, task lists, the good shit  
+✅ **Zero configuration** - organize files however you want, there's no "right" structure  
+✅ **Auto-heading IDs** - for anchor links, because we're not savages  
+✅ **Hot-reload friendly** - crashes and retries, like your last relationship  
+
+### Installation
 
 ```bash
-git clone https://github.com/yourusername/mofo.git
+go install github.com/NicoNex/mofo@latest
+```
+
+Or build it yourself if you don't trust binaries from strangers (smart):
+
+```bash
+git clone https://github.com/NicoNex/mofo.git
 cd mofo
 go build
 ```
 
-## Usage
+Now you have a single binary. Move it wherever the fuck you want. `/usr/local/bin`, your home directory, a USB stick, I don't care. It doesn't need a `node_modules` folder the size of the goddamn moon.
 
-### Serve a single markdown file
+### Usage
 
-```bash
-mofo /path/to/file.md
-```
-
-### Serve a directory (requires index.md)
+#### Serve a directory
 
 ```bash
-mofo /path/to/directory
+mofo /path/to/site
 ```
 
-The directory must contain an `index.md` file as the entry point.
+Your site needs an `index.md` file. That's it. That's the requirement. Can you create one file? Great, you're qualified.
 
-### Specify a custom port
+#### Serve on a different port
 
 ```bash
-mofo -p 3000 /path/to/directory
-mofo -port 3000 /path/to/directory
+mofo -p 3000 /path/to/site
 ```
 
-Default port is `:8080`.
+Or use `-port` if you're feeling verbose. I included both flags because I'm not a monster.
 
-## Directory Structure
-
-```
-your-site/
-├── index.md              # Entry point (required)
-├── about.md              # Other markdown pages
-├── posts/
-│   └── hello-world.md
-└── assets/               # Static assets folder
-    ├── style.css         # Custom stylesheet (overrides default)
-    ├── image.png         # Images
-    ├── script.js         # Scripts (if you must...)
-    └── logo.svg          # Any other static files
-```
-
-## Assets Folder
-
-The `assets/` folder works exactly like a standard website's static files directory. Any file placed in `assets/` can be referenced from your markdown or HTML:
-
-```markdown
-![My Image](/assets/image.png)
-<img src="/assets/logo.svg" alt="Logo">
-<script src="/assets/script.js"></script>
-```
-
-All files in the `assets/` directory are served directly with no processing.
-
-## Custom Styling
-
-**To override the default CSS:** Simply create a file at `assets/style.css` in your site's root directory.
-
-```
-your-site/
-└── assets/
-    └── style.css  # Overrides the built-in minimal CSS
-```
-
-- If `assets/style.css` **exists** → your custom CSS is used
-- If `assets/style.css` **does not exist** → the built-in minimal CSS is used
-
-The default CSS is embedded in the binary, so you always have a working baseline. Create your own `style.css` only when you want to customize the look.
-
-## Frontmatter
-
-Add metadata to your markdown files using frontmatter:
-
-```markdown
----
-title: My Awesome Page
-meta: A short description for SEO
----
-
-# Content starts here
-
-Your markdown content...
-```
-
-**Supported formats:** YAML and TOML
-
-**Supported fields:**
-- `title` - Page title (shown in browser tab and `<title>` tag)
-- `meta` - Meta description (currently parsed but not yet rendered)
-
-If no title is provided, defaults to "Untitled".
-
-## URL Structure
-
-- `/` - Serves the index.md file
-- `/about.md` - Serves about.md from the root
-- `/posts/hello-world.md` - Serves posts/hello-world.md
-- `/assets/style.css` - Serves the stylesheet (custom or default)
-- `/assets/image.png` - Serves static assets directly
-- `/assets/anything.xyz` - Serves any file from assets/
-
-All paths are relative to the root directory you specified when starting the server.
-
-## Command Line Flags
-
-| Flag | Shorthand | Default | Description |
-|------|-----------|---------|-------------|
-| `-port` | `-p` | `:8080` | Port to serve on |
-
-**Important:** Flags must come **before** the path argument.
+**IMPORTANT:** Flags go BEFORE the path, not after. This is how command-line tools work. If you put the path first, the flags get ignored, and then you'll bitch about the port not working. Don't be that person.
 
 ```bash
-# ✅ Correct
+# ✅ Correct (you're not an idiot)
 mofo -p 3000 /path/to/site
 
-# ❌ Wrong
+# ❌ Wrong (you're about to file a bug report that I'll close)
 mofo /path/to/site -p 3000
 ```
 
-## Examples
+### Directory Structure (or lack thereof)
 
-### Minimal personal site
+Here's the deal: **organize your shit however you want.** There's literally ONE requirement: an `index.md` file. That's it. Everything else is up to you.
+
+```
+your-site/
+├── index.md              ← Required. That's the list.
+├── about.md              ← Put markdown files wherever
+├── blog/
+│   └── post.md           ← Subdirectories? Sure.
+├── images/
+│   └── cat.jpg           ← Static files? Anywhere you want.
+├── downloads/
+│   └── resume.pdf        ← PDFs, fonts, whatever
+└── assets/               ← Special folder (explained below)
+    └── style.css         ← ONLY special for overriding default CSS
+```
+
+### Here's how file serving actually works
+
+**Markdown files (`.md`)** → Rendered as HTML with your template
+**Everything else** → Served directly as static files
+
+That's it. That's the whole algorithm. You want an image at `/images/cat.jpg`? Put `cat.jpg` in an `images/` folder. You want a PDF at `/docs/resume.pdf`? Put it in a `docs/` folder. There's no magic, no configuration, no "approved" directory structure. It's a file server. It serves files.
+
+### The `assets/` folder (the only special thing)
+
+The ONLY special behavior is `assets/style.css` - if this file exists, it **overrides the built-in CSS**. That's the entire special case. Everything else in `assets/` (or any other folder) is just... a file. Want images in `assets/`? Sure. Want them in `images/`? Also fine. Want them in `pictures-of-my-cat/`? I'm not your dad.
+
+**Examples:**
+- `![Cat](/images/cat.jpg)` → put cat.jpg in `images/`
+- `![Dog](/assets/dog.png)` → put dog.png in `assets/`
+- `<script src="/js/app.js">` → put app.js in `js/`
+- `[Resume](/resume.pdf)` → put resume.pdf in the root
+
+**It just serves the fucking files.** No preprocessing, no optimization, no "asset pipeline." If the file exists at that path, it gets served. If it doesn't, you get a 404. Revolutionary simplicity.
+
+### Frontmatter (because metadata is occasionally useful)
+
+```markdown
+---
+title: My Thoughts on JavaScript Frameworks
+meta: Spoiler alert - we have too many
+---
+
+# They keep making new ones
+
+Why? Nobody knows...
+```
+
+Supported formats: **YAML** and **TOML**
+Supported fields: `title` (page title) and `meta` (description)
+
+If you don't provide a title, you get "Untitled" - which is perfect for your half-finished blog posts that you'll never publish.
+
+### How It Works (the technical shit)
+
+1. Starts an HTTP server (port `:8080` by default)
+2. Request comes in for a file
+3. **Is it a `.md` file?** → Convert to HTML using [goldmark](https://github.com/yuin/goldmark), render with template
+4. **Is it anything else?** → Serve it directly as a static file (images, CSS, JS, PDFs, whatever)
+5. **File doesn't exist?** → 404, obviously
+6. Auto-retries if it crashes (every 5 seconds, like a persistent ex)
+
+**No build step.** No caching layer. No CDN. No GraphQL API to query your markdown files like it's 2019 and you're trying to get VC funding. Just a server that checks file extensions and serves files. Revolutionary, I know.
+
+### Examples
+
+#### Make a personal site in 30 seconds
 
 ```bash
-# Create a simple site
-mkdir my-site
-cd my-site
-echo "---\ntitle: Home\n---\n\n# Welcome\n\nThis is my site." > index.md
-
-# Serve it
+mkdir my-site && cd my-site
+echo -e "---\ntitle: Home\n---\n\n# Hi\n\nThis is my website.\n\nIt loads in 0.3 seconds." > index.md
 mofo .
 ```
 
-Visit `http://localhost:8080` in your browser.
+Open `http://localhost:8080` - you now have a website that's faster than 95% of the internet. You're welcome.
 
-### Blog with custom styling
+#### Add custom styling
 
 ```bash
-my-blog/
-├── index.md
-├── posts/
-│   ├── 2024-01-15-first-post.md
-│   └── 2024-01-20-second-post.md
-└── assets/
-    ├── style.css         # Your custom CSS
-    └── header-image.jpg  # Referenced in markdown
+mkdir -p assets
+cat > assets/style.css << 'EOF'
+body {
+    max-width: 650px;
+    margin: 40px auto;
+    font-size: 18px;
+    line-height: 1.6;
+    color: #333;
+}
+EOF
 ```
 
-Serve with: `mofo my-blog`
+Congratulations, you just wrote CSS that will still work in 2040, unlike whatever JavaScript framework you used last week.
 
-Reference the image in your markdown:
-```markdown
-![Header](/assets/header-image.jpg)
-```
+### FAQ
 
-## How It Works
+**Q: Can I use this for production?**
+A: If your "production" is a blog, documentation site, or personal page - fuck yes. If you're building the next Facebook, probably use something else (but also, please don't build the next Facebook).
 
-1. **Starts** an HTTP server on the specified port
-2. **Reads** markdown files from the specified directory
-3. **Parses** frontmatter and converts markdown to HTML using [goldmark](https://github.com/yuin/goldmark)
-4. **Renders** the HTML using a minimal embedded template
-5. **Serves** static assets (images, CSS, etc.) directly from the `assets/` folder
-6. **Retries** automatically if the server crashes (every 5 seconds)
+**Q: What about SEO?**
+A: You have semantic HTML, proper title tags, meta descriptions, and fast load times. That's literally all SEO is. Everything else is snake oil sold by people with "growth hacker" in their LinkedIn bio.
 
-## Dependencies
+**Q: Does it support [insert framework here]?**
+A: No. And that's the whole fucking point.
 
-- [goldmark](https://github.com/yuin/goldmark) - Markdown parser
-- [goldmark/frontmatter](https://go.abhg.dev/goldmark/frontmatter) - Frontmatter support
+**Q: What about dynamic content?**
+A: Write a different tool. This one serves markdown files. If you need a database and authentication and server-side rendering and GraphQL and microservices, you're in the wrong place, friend.
 
-## License
+**Q: The default CSS is ugly.**
+A: Then change it. Put your CSS in `assets/style.css` and make it as ugly as you want. Or as pretty. I'm not your dad.
 
-MIT
+**Q: Can I add JavaScript?**
+A: You can, but *should you?* (No. The answer is no.)
 
-## Contributing
+### Dependencies
 
-Contributions welcome! Keep it simple, keep it fast, keep it minimal.
+- [goldmark](https://github.com/yuin/goldmark) - Actually good markdown parser
+- [goldmark/frontmatter](https://go.abhg.dev/goldmark/frontmatter) - Frontmatter extension
+
+That's it. Two dependencies. Both written in Go. Both compile to native code. No supply chain attacks from `leftpad-v2-react-hooks` maintained by a teenager in Belarus.
+
+### Contributing
+
+Keep it simple. Keep it fast. Don't add features "just in case." If you want to add React support, I will personally close your PR and suggest therapy.
+
+### License
+
+GPL3 - You can use it, modify it, sell it, whatever. But if you distribute your modified version, you gotta share the source code too. It's called copyleft, and it keeps shit free and open. Don't like it? Write your own markdown server.
 
 ---
 
-*Built with the motherfucking website philosophy: content first, bullshit never.*
+**Built for people who miss the internet before it needed 3GB of RAM to display a recipe.**
+
+*No JavaScript was harmed in the making of this tool.*
