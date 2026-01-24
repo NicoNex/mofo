@@ -139,7 +139,7 @@ The ONLY special behavior is `assets/style.css` - if this file exists, it **over
 ```markdown
 ---
 title: My Thoughts on JavaScript Frameworks
-meta: Spoiler alert - we have too many
+description: Spoiler alert - we have too many
 ---
 
 # They keep making new ones
@@ -148,9 +148,12 @@ Why? Nobody knows...
 ```
 
 Supported formats: **YAML** and **TOML**
-Supported fields: `title` (page title) and `meta` (description)
 
-If you don't provide a title, you get "Untitled" - which is perfect for your half-finished blog posts that you'll never publish.
+Supported fields:
+- `title` - Page title (shown in browser tab and `<title>` tag)
+- `description` - Meta description (rendered in `<meta name="description">` tag for SEO)
+
+If you don't provide a title, you get "Untitled" - which is perfect for your half-finished blog posts that you'll never publish. If you don't provide a description, no meta description tag is rendered.
 
 ### How It Works (the technical shit)
 
@@ -194,22 +197,22 @@ Congratulations, you just wrote CSS that will still work in 2040, unlike whateve
 
 ### FAQ
 
-**Q: Can I use this for production?**
+**Q: Can I use this for production?**  
 A: If your "production" is a blog, documentation site, or personal page - fuck yes. If you're building the next Facebook, probably use something else (but also, please don't build the next Facebook).
 
-**Q: What about SEO?**
+**Q: What about SEO?**  
 A: You have semantic HTML, proper title tags, meta descriptions, and fast load times. That's literally all SEO is. Everything else is snake oil sold by people with "growth hacker" in their LinkedIn bio.
 
-**Q: Does it support [insert framework here]?**
+**Q: Does it support [insert framework here]?**  
 A: No. And that's the whole fucking point.
 
-**Q: What about dynamic content?**
+**Q: What about dynamic content?**  
 A: Write a different tool. This one serves markdown files. If you need a database and authentication and server-side rendering and GraphQL and microservices, you're in the wrong place, friend.
 
-**Q: The default CSS is ugly.**
+**Q: The default CSS is ugly.**  
 A: Then change it. Put your CSS in `assets/style.css` and make it as ugly as you want. Or as pretty. I'm not your dad.
 
-**Q: Can I add JavaScript?**
+**Q: Can I add JavaScript?**  
 A: You can, but *should you?* (No. The answer is no.)
 
 ### Dependencies
