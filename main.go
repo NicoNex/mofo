@@ -2,7 +2,6 @@ package main
 
 import (
 	_ "embed"
-	"errors"
 	"flag"
 	"fmt"
 	"html/template"
@@ -60,13 +59,11 @@ func parseFlags() (port, path string) {
 		flag.Usage()
 		os.Exit(1)
 	}
-
 	return
 }
 
 func newServer(port string) Server {
 	return Server{
-		// Port: port,
 		MD: goldmark.New(
 			goldmark.WithExtensions(
 				extension.GFM,
@@ -96,26 +93,71 @@ func (s *Server) Serve(path string) error {
 		return err
 	}
 
-	var file string
 	if info.IsDir() {
-		idx := filepath.Join(clean, "index.md")
-		if _, err := os.Stat(idx); errors.Is(err, fs.ErrNotExist) {
-			log.Fatal("Serve", "os.Stat", err)
-		}
-		file = idx
 		s.Root = clean
-	} else {
-		file = clean
-		s.Root = filepath.Dir(clean)
+
+		idxMD := filepath.Join(clean, "index.md")
+		if _, err := os.Stat(idxMD); err == nil {
+			return s.serveWithIndex(idxMD)
+		}
+
+		idxHTML := filepath.Join(clean, "index.html")
+		if _, err := os.Stat(idxHTML); err == nil {
+			return s.serveWithIndex(idxHTML)
+		}
+
+		return s.serveDirectory()
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		s.serveFile(w, r, file)
-	})
+	s.Root = filepath.Dir(clean)
+	return s.serveWithIndex(clean)
+}
 
+func (s *Server) serveDirectory() error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", s.handleRequest)
 	s.HTTPServer.Handler = mux
 	return s.HTTPServer.ListenAndServe()
+}
+
+func (s *Server) serveWithIndex(file string) error {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" {
+			s.serveMarkdown(w, r, file)
+			return
+		}
+		s.handleRequest(w, r)
+	})
+	s.HTTPServer.Handler = mux
+	return s.HTTPServer.ListenAndServe()
+}
+
+func (s Server) handleRequest(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		http.Error(w, "No index file found", http.StatusNotFound)
+		return
+	}
+
+	if r.URL.Path == "/assets/style.css" {
+		s.serveCSS(w, r)
+		return
+	}
+
+	trimmed := strings.TrimPrefix(r.URL.Path, "/")
+	safe, err := validatePath(s.Root, trimmed)
+	if err != nil {
+		log.Println("handleRequest", "validatePath", err)
+		http.Error(w, "Page not found", http.StatusNotFound)
+		return
+	}
+
+	if strings.HasSuffix(strings.ToLower(safe), ".md") {
+		s.serveMarkdown(w, r, safe)
+		return
+	}
+
+	http.ServeFile(w, r, safe)
 }
 
 func (s Server) serveMarkdown(w http.ResponseWriter, _ *http.Request, mdPath string) {
@@ -169,41 +211,13 @@ func (s Server) serveMarkdown(w http.ResponseWriter, _ *http.Request, mdPath str
 
 func (s Server) serveCSS(w http.ResponseWriter, r *http.Request) {
 	css := filepath.Join(s.Root, "assets", "style.css")
-	if _, err := os.Stat(css); err == nil {
-		w.Header().Set("Content-Type", "text/css; charset=utf-8")
-		http.ServeFile(w, r, css)
+
+	w.Header().Set("Content-Type", "text/css; charsetx=utf-8")
+	if _, err := os.Stat(css); err != nil {
+		w.Write([]byte(defaultCSS))
 		return
 	}
-
-	w.Header().Set("Content-Type", "text/css; charset=utf-8")
-	w.Write([]byte(defaultCSS))
-}
-
-func (s Server) serveFile(w http.ResponseWriter, r *http.Request, file string) {
-	if r.URL.Path == "/" {
-		s.serveMarkdown(w, r, file)
-		return
-	}
-
-	if r.URL.Path == "/assets/style.css" {
-		s.serveCSS(w, r)
-		return
-	}
-
-	trimmed := strings.TrimPrefix(r.URL.Path, "/")
-	safe, err := validatePath(s.Root, trimmed)
-	if err != nil {
-		log.Println("serveFile", "validatePath", err)
-		http.Error(w, "Page not found", http.StatusNotFound)
-		return
-	}
-
-	if strings.HasSuffix(strings.ToLower(safe), ".md") {
-		s.serveMarkdown(w, r, safe)
-		return
-	}
-
-	http.ServeFile(w, r, safe)
+	http.ServeFile(w, r, css)
 }
 
 func validatePath(root, p string) (string, error) {
@@ -216,7 +230,6 @@ func validatePath(root, p string) (string, error) {
 	if _, err := os.Stat(full); os.IsNotExist(err) {
 		return "", fmt.Errorf("not found: %s", p)
 	}
-
 	return full, nil
 }
 
