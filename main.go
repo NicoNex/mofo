@@ -124,13 +124,21 @@ func (s *Server) serveWithIndex(file string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" {
-			s.serveMarkdown(w, r, file)
+			s.serveIndex(w, r, file)
 			return
 		}
 		s.handleRequest(w, r)
 	})
 	s.HTTPServer.Handler = mux
 	return s.HTTPServer.ListenAndServe()
+}
+
+func (s Server) serveIndex(w http.ResponseWriter, r *http.Request, path string) {
+	if strings.HasSuffix(strings.ToLower(path), ".md") {
+		s.serveMarkdown(w, r, path)
+		return
+	}
+	http.ServeFile(w, r, path)
 }
 
 func (s Server) handleRequest(w http.ResponseWriter, r *http.Request) {

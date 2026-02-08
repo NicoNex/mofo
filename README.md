@@ -155,6 +155,8 @@ Supported fields:
 
 If you don't provide a title, you get "Untitled" - which is perfect for your half-finished blog posts that you'll never publish. If you don't provide a description, no meta description tag is rendered.
 
+**Favicon:** Just put `favicon.ico` in your site's root directory. That's it. No configuration needed. The template looks for `/favicon.ico` automatically. If the file exists, browsers show it. If it doesn't exist, browsers silently fail and you get no icon. Simple.
+
 ### How It Works (the technical shit)
 
 1. Starts an HTTP server (port `:8080` by default)
