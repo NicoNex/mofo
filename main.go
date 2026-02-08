@@ -95,56 +95,29 @@ func (s *Server) Serve(path string) error {
 
 	if info.IsDir() {
 		s.Root = clean
-
-		idxMD := filepath.Join(clean, "index.md")
-		if _, err := os.Stat(idxMD); err == nil {
-			return s.serveWithIndex(idxMD)
-		}
-
-		idxHTML := filepath.Join(clean, "index.html")
-		if _, err := os.Stat(idxHTML); err == nil {
-			return s.serveWithIndex(idxHTML)
-		}
-
-		return s.serveDirectory()
+	} else {
+		s.Root = filepath.Dir(clean)
 	}
 
-	s.Root = filepath.Dir(clean)
-	return s.serveWithIndex(clean)
-}
-
-func (s *Server) serveDirectory() error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleRequest)
 	s.HTTPServer.Handler = mux
 	return s.HTTPServer.ListenAndServe()
 }
 
-func (s *Server) serveWithIndex(file string) error {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" {
-			s.serveIndex(w, r, file)
-			return
-		}
-		s.handleRequest(w, r)
-	})
-	s.HTTPServer.Handler = mux
-	return s.HTTPServer.ListenAndServe()
-}
-
-func (s Server) serveIndex(w http.ResponseWriter, r *http.Request, path string) {
-	if strings.HasSuffix(strings.ToLower(path), ".md") {
-		s.serveMarkdown(w, r, path)
-		return
-	}
-	http.ServeFile(w, r, path)
-}
-
 func (s Server) handleRequest(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/" {
-		http.Error(w, "No index file found", http.StatusNotFound)
-		return
+		idxMD := filepath.Join(s.Root, "index.md")
+		if _, err := os.Stat(idxMD); err == nil {
+			s.serveMarkdown(w, r, idxMD)
+			return
+		}
+
+		idxHTML := filepath.Join(s.Root, "index.html")
+		if _, err := os.Stat(idxHTML); err == nil {
+			http.ServeFile(w, r, idxHTML)
+			return
+		}
 	}
 
 	if r.URL.Path == "/assets/style.css" {
