@@ -77,7 +77,7 @@ func (fs fileServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	switch path := r.URL.Path; {
 
 	case path == "/":
-		if fs.serveMarkdown(w, "/index.md") {
+		if err := fs.serveMarkdown(w, "/index.md"); err == nil {
 			return
 		}
 
@@ -86,7 +86,7 @@ func (fs fileServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case strings.HasSuffix(strings.ToLower(path), ".md"):
-		if fs.serveMarkdown(w, path) {
+		if fs.serveMarkdown(w, path) == nil {
 			return
 		}
 	}
@@ -95,15 +95,14 @@ func (fs fileServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	fs.handler.ServeHTTP(w, r)
 }
 
-func (fs fileServer) serveMarkdown(w http.ResponseWriter, mdPath string) bool {
+func (fs fileServer) serveMarkdown(w http.ResponseWriter, mdPath string) error {
 	html, meta, err := fs.convertMarkdown(mdPath)
 	if err != nil {
-		// File not found or read error - let default handler deal with it
-		return false
+		return err
 	}
 
 	fs.renderPage(w, html, meta)
-	return true
+	return nil
 }
 
 func (fs fileServer) convertMarkdown(mdPath string) (string, pageMeta, error) {
@@ -165,4 +164,3 @@ func (fs fileServer) serveCSS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/css; charset=utf-8")
 	w.Write(DefaultCSS)
 }
-

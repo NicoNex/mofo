@@ -5,11 +5,27 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"time"
 
 	"github.com/NicoNex/mofo"
 )
+
+// virtual file system serves a single file as if it were at the root "/".
+type vFS string
+
+func (vfs vFS) Open(name string) (http.File, error) {
+	clean := path.Clean(name)
+
+	// Accept "/" or the actual filename (e.g., "/document.md")
+	if clean == "/" || clean == "." || clean == "/"+path.Base(string(vfs)) {
+		return os.Open(string(vfs))
+	}
+
+	// Everything else → 404
+	return nil, os.ErrNotExist
+}
 
 func retry(d time.Duration, fn func()) {
 	for {
@@ -19,9 +35,18 @@ func retry(d time.Duration, fn func()) {
 }
 
 func main() {
-	port, path := parseFlags()
+	var fs http.FileSystem
 
-	http.Handle("/", mofo.FileServer(http.Dir(path)))
+	port, path := parseFlags()
+	if info, err := os.Stat(path); err != nil {
+		log.Fatal(err)
+	} else if info.IsDir() {
+		fs = http.Dir(path)
+	} else {
+		fs = vFS(path)
+	}
+
+	http.Handle("/", mofo.FileServer(fs))
 	retry(
 		5*time.Second,
 		func() { log.Println(http.ListenAndServe(port, nil)) },
