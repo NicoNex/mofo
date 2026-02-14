@@ -1,8 +1,10 @@
 # mofo
 
-## This is a motherfucking markdown web server.
+## This is a motherfucking markdown web server. And a library.
 
-And it's probably the only one you'll ever fucking need.
+Binary. Library. Both. Deal with it.
+
+And it's the only one you'll ever fucking need.
 
 ### It's *actually* simple
 
@@ -45,25 +47,85 @@ Perfect for blogs, documentation, personal sites, or literally anything where yo
 
 ### Features (that actually matter)
 
-✅ **Serves markdown as HTML** - shocking, I know  
-✅ **Serves everything else as static files** - images, CSS, PDFs, fonts, whatever the fuck you want  
-✅ **Frontmatter support** - YAML/TOML for titles and meta tags  
-✅ **GitHub Flavored Markdown** - tables, strikethrough, task lists, the good shit  
-✅ **Zero configuration** - organize files however you want, there's no "right" structure  
-✅ **Auto-heading IDs** - for anchor links, because we're not savages  
-✅ **Hot-reload friendly** - crashes and retries, like your last relationship  
+✅ **Serves markdown as HTML** - shocking, I know
+✅ **Serves everything else as static files** - images, CSS, PDFs, fonts, whatever the fuck you want
+✅ **Frontmatter support** - YAML/TOML for titles and meta tags
+✅ **GitHub Flavored Markdown** - tables, strikethrough, task lists, the good shit
+✅ **Zero configuration** - organize files however you want, there's no "right" structure
+✅ **Auto-heading IDs** - for anchor links, because we're not savages
+✅ **Hot-reload friendly** - crashes and retries, like your last relationship
+
+### It's also a motherfucking LIBRARY
+
+Oh, you thought this was just a binary? **WRONG.** This is also a Go library that exports **ONE FUCKING FUNCTION**: `mofo.FileServer()`.
+
+And guess what? It's a **drop-in replacement** for `http.FileServer()`. Same signature. Same behavior. Except it doesn't shit itself when it sees a `.md` file - it converts that beautiful markdown to HTML like a goddamn professional.
+
+#### Drop it in your Go code and watch the magic happen
+
+```go
+package main
+
+import (
+    "log"
+    "net/http"
+
+    "github.com/NicoNex/mofo"
+)
+
+func main() {
+    // The old, boring way that can't handle markdown:
+    // http.Handle("/", http.FileServer(http.Dir("./site")))
+
+    // The NEW way that makes your markdown files actually useful:
+    http.Handle("/", mofo.FileServer(http.Dir("./site")))
+
+    log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+**BOOM.** Two lines of code. Your app now serves markdown as HTML. Everything else? Static files. No configuration files. No YAML hell. No "please refer to our 47-page integration guide." Just change `http.FileServer` to `mofo.FileServer` and get on with your fucking life.
+
+#### Why should you give a shit?
+
+Because unlike every other markdown library that wants you to:
+1. Parse the markdown yourself
+2. Set up templates yourself
+3. Handle routing yourself
+4. Configure 47 different options yourself
+5. Sacrifice a goat to the framework gods yourself
+
+**mofo gives you ONE function** that handles all that shit. It's `http.Handler` compatible because we're not barbarians who reinvent the wheel every Tuesday.
+
+#### Real-world example (because examples matter)
+
+```go
+// Got an existing web app? Cool. Add markdown docs without rewriting everything:
+mux := http.NewServeMux()
+mux.Handle("/api/", yourAPIHandler)           // Your API
+mux.Handle("/admin/", yourAdminPanel)         // Your admin shit
+mux.Handle("/", mofo.FileServer(http.Dir("./docs")))  // Docs in markdown
+
+// Markdown files = HTML pages
+// Everything else = static files
+// Your brain cells = preserved
+```
+
+No adapters. No middleware chains that look like npm dependency trees. No "integrations" that break when Mercury is in retrograde. Just the **standard fucking library** doing what it does best.
+
+**One function. One line change. Infinite less bullshit.**
 
 ### Installation
 
 ```bash
-go install github.com/NicoNex/mofo@latest
+go install github.com/NicoNex/mofo/cmd/mofo@latest
 ```
 
 Or build it yourself if you don't trust binaries from strangers (smart):
 
 ```bash
 git clone https://github.com/NicoNex/mofo.git
-cd mofo
+cd mofo/cmd/mofo
 go build
 ```
 

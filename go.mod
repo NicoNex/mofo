@@ -1,4 +1,4 @@
-module mofo
+module github.com/NicoNex/mofo
 
 go 1.25.6
 
