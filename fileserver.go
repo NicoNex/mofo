@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"html/template"
 	"io"
-	"io/fs"
 	"log"
 	"net/http"
 	"strings"
