@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"html/template"
 	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"strings"
@@ -74,6 +75,12 @@ func FileServer(root http.FileSystem) http.Handler {
 }
 
 func (fs fileServer) handleRequest(w http.ResponseWriter, r *http.Request) {
+	// Reject path traversal attempts with backslash (Windows-style)
+	if strings.Contains(r.URL.Path, "\\") {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+
 	switch path := r.URL.Path; {
 
 	case path == "/":
