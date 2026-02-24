@@ -39,7 +39,7 @@ type fileServer struct {
 
 var (
 	//go:embed page.template.html
-	tmplContent string
+	HTMLtemplate string
 	//go:embed default.style.css
 	DefaultCSS []byte
 )
@@ -52,7 +52,7 @@ func FileServer(root http.FileSystem) http.Handler {
 			// Standard file server for regular files
 			handler: http.FileServer(root),
 			// Initialize HTML template for markdown pages
-			template: template.Must(template.New("mdpage").Parse(tmplContent)),
+			template: template.Must(template.New("mdpage").Parse(HTMLtemplate)),
 			// Initialize markdown processor
 			md: goldmark.New(
 				goldmark.WithExtensions(
@@ -81,7 +81,6 @@ func (fs fileServer) handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch path := r.URL.Path; {
-
 	case path == "/":
 		if err := fs.serveMarkdown(w, "/index.md"); err == nil {
 			return

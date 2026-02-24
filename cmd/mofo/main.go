@@ -12,20 +12,68 @@ import (
 	"github.com/NicoNex/mofo"
 )
 
-// virtual file system serves a single file as if it were at the root "/".
+// virtual file system serves a single file as if it were in a root directory "/".
 type vFS string
 
 func (vfs vFS) Open(name string) (http.File, error) {
 	clean := path.Clean(name)
 
-	// Accept "/" or the actual filename (e.g., "/document.md")
-	if clean == "/" || clean == "." || clean == "/"+path.Base(string(vfs)) {
+	// Serve the file as /index.md so mofo.FileServer serves it at /
+	// Also serve at the original basename for direct access
+	if clean == "/index.html" || clean == "/"+path.Base(string(vfs)) {
 		return os.Open(string(vfs))
+	}
+
+	// Root directory request - return virtual directory
+	if clean == "/" || clean == "." {
+		realFile, err := os.Open(string(vfs))
+		if err != nil {
+			return nil, err
+		}
+		stat, err := realFile.Stat()
+		realFile.Close()
+		if err != nil {
+			return nil, err
+		}
+		return &vDir{name: path.Base(string(vfs)), info: stat}, nil
 	}
 
 	// Everything else → 404
 	return nil, os.ErrNotExist
 }
+
+// vDir implements http.File for a virtual directory containing one file.
+type vDir struct {
+	name   string
+	info   os.FileInfo
+	offset int
+}
+
+func (d *vDir) Close() error                   { return nil }
+func (d *vDir) Read([]byte) (int, error)       { return 0, os.ErrInvalid }
+func (d *vDir) Seek(int64, int) (int64, error) { return 0, os.ErrInvalid }
+
+func (d *vDir) Stat() (os.FileInfo, error) {
+	return dirInfo("/"), nil
+}
+
+func (d *vDir) Readdir(count int) ([]os.FileInfo, error) {
+	if d.offset > 0 {
+		return nil, nil
+	}
+	d.offset++
+	return []os.FileInfo{d.info}, nil
+}
+
+// dirInfo implements os.FileInfo for the virtual root directory.
+type dirInfo string
+
+func (di dirInfo) Name() string       { return string(di) }
+func (di dirInfo) Size() int64        { return 0 }
+func (di dirInfo) Mode() os.FileMode  { return os.ModeDir | 0755 }
+func (di dirInfo) ModTime() time.Time { return time.Now() }
+func (di dirInfo) IsDir() bool        { return true }
+func (di dirInfo) Sys() any           { return nil }
 
 func retry(d time.Duration, fn func()) {
 	for {
